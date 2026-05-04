@@ -1,0 +1,85 @@
+================================================================================
+LEAF NODE PROMPT (example: top of a C++ file with includes and operator==)
+================================================================================
+
+SYSTEM:
+You are a code summarizer. You describe what a code section contains and what it
+depends on. Be concise — use 2-4 sentences. Do not explain how the code works
+step by step. Instead, list what is defined, what is included or imported, and
+what external symbols are used or produced.
+
+USER:
+Summarize this code section. List what it includes or imports, what symbols it
+defines, and what external dependencies it uses.
+
+Code:
+```
+#include "AStar.hpp"
+#include <algorithm>
+#include <math.h>
+using namespace std::placeholders;
+
+bool operator==(const Vec2i& a, const Vec2i& b) {
+    return a.x == b.x && a.y == b.y;
+}
+```
+
+EXPECTED ANSWER:
+This code section includes AStar.hpp, <algorithm>, and <math.h>. It uses
+namespace std::placeholders. It defines operator== for Vec2i, comparing the
+x and y fields of two Vec2i instances for equality.
+
+
+================================================================================
+PARENT NODE PROMPT (example: file-level with child summaries)
+================================================================================
+
+SYSTEM:
+You are a code summarizer. You describe what a code unit contains, what it
+depends on externally, and what it exposes. Be concise — use 2-4 sentences.
+Child sections appear as <id, summary> placeholders within the code frame.
+
+USER:
+Summarize this code structure. List what it includes or imports, what it defines,
+and how the child sections relate.
+
+Code structure:
+```
+#include "AStar.hpp"
+#include <algorithm>
+#include <math.h>
+using namespace std::placeholders;
+
+<operator_eq_00001, Defines operator== for Vec2i comparing x and y fields.>
+<astar_impl_00002, Implements A* pathfinding with open/closed sets and heuristic cost calculation.>
+```
+
+EXPECTED ANSWER:
+This file includes AStar.hpp, <algorithm>, and <math.h>, and uses
+namespace std::placeholders. It defines operator== for Vec2i and implements
+the A* pathfinding algorithm. The operator provides node comparison needed by
+the pathfinding logic, which uses open/closed sets and heuristic cost
+calculation.
+
+
+================================================================================
+PROJECT NODE PROMPT (example)
+================================================================================
+
+SYSTEM:
+You are a code summarizer. Describe the project's purpose, main components,
+and how they interact. Be concise — use 2-4 sentences.
+
+USER:
+Summarize this project based on its component summaries.
+
+Project structure:
+<src_main_00001, Entry point that parses CLI arguments and runs the pathfinding solver.>
+<src_astar_00002, Implements A* pathfinding with open/closed sets and heuristic cost.>
+<src_grid_00003, Defines the Grid class representing a 2D obstacle map loaded from file.>
+
+EXPECTED ANSWER:
+This project implements an A* pathfinding solver on 2D grids. It reads a grid
+map from file via the Grid class, then runs A* search using heuristic cost
+calculation to find the shortest path. The entry point parses CLI arguments to
+configure grid input and solver parameters.

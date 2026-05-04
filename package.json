@@ -1,0 +1,38 @@
+{
+  "name": "vdg-generator",
+  "displayName": "VDG Generator",
+  "description": "Generate hierarchical code chunks and variational dependency graphs",
+  "version": "0.1.0",
+  "publisher": "vdg-generator",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Visualization"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vdg.generateChunks",
+        "title": "Generate Chunks & Variational Dependency Graph"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "vdg.generateChunks",
+          "group": "2_workspace"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0"
+  }
+}

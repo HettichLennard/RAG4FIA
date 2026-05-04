@@ -1,0 +1,672 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--vscode-editor-background, #1e1e1e);
+  color: var(--vscode-editor-foreground, #cccccc);
+  font-family: var(--vscode-font-family, 'Segoe UI', sans-serif);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* --- Config screen --- */
+#config-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+}
+
+.config-box {
+  background: var(--vscode-sideBar-background, #252526);
+  border: 1px solid var(--vscode-panel-border, #444);
+  border-radius: 8px;
+  padding: 24px 32px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.config-box h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--vscode-editor-foreground, #cccccc);
+}
+
+.config-field {
+  margin-bottom: 16px;
+}
+
+.config-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--vscode-editor-foreground, #cccccc);
+}
+
+.config-field input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--vscode-input-foreground, #cccccc);
+  background: var(--vscode-input-background, #3c3c3c);
+  border: 1px solid var(--vscode-input-border, #555);
+  border-radius: 4px;
+  outline: none;
+}
+
+.config-field input:focus {
+  border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.config-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--vscode-editor-foreground, #cccccc);
+}
+
+.config-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--vscode-focusBorder, #007acc);
+}
+
+.config-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground, #888);
+}
+
+#start-analysis {
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--vscode-button-foreground, #ffffff);
+  background: var(--vscode-button-background, #007acc);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#start-analysis:hover {
+  background: var(--vscode-button-hoverBackground, #005a9e);
+}
+
+/* --- Tree container --- */
+#tree-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+
+#tree-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Loading overlay --- */
+#loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--vscode-editor-background, #1e1e1e);
+  z-index: 50;
+}
+
+#loading-overlay p {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--vscode-descriptionForeground, #888);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--vscode-foreground, #555);
+  border-top-color: var(--vscode-focusBorder, #007acc);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Node styling --- */
+.node rect.node-rect {
+  fill: var(--vscode-editor-background, #1e1e1e);
+  stroke: var(--vscode-foreground, #cccccc);
+  stroke-width: 1.5;
+  rx: 4;
+  ry: 4;
+}
+
+.node text {
+  fill: var(--vscode-editor-foreground, #cccccc);
+  font-size: 12px;
+  dominant-baseline: central;
+  text-anchor: middle;
+}
+
+/* --- Base rules (lowest priority, come first) --- */
+
+/* Nodes with children: gray border */
+.node-has-children rect.node-rect {
+  stroke: #888;
+}
+
+/* Merged nodes: black dashed border, white fill */
+.node-merged rect.node-rect {
+  stroke: #000000;
+  stroke-width: 1.5;
+  stroke-dasharray: 4,2;
+  fill: var(--vscode-editor-background, #1e1e1e);
+}
+
+/* --- Color rules (overwrite base rules) --- */
+
+/* Project: dark red, thick border */
+.node-project rect.node-rect {
+  stroke: #8b0000;
+  stroke-width: 3.5;
+  fill: rgba(139, 0, 0, 0.12);
+}
+.node-project text { fill: #000000; }
+
+/* Directory: orange */
+.node-directory rect.node-rect {
+  stroke: #e08a1e;
+  stroke-width: 2;
+  fill: rgba(224, 138, 30, 0.10);
+}
+.node-directory text { fill: #000000; }
+
+/* File: green */
+.node-file rect.node-rect {
+  stroke: #2e8b57;
+  stroke-width: 2;
+  fill: rgba(46, 139, 87, 0.10);
+}
+.node-file text { fill: #000000; }
+
+/* Scope-open: red continuous border */
+.node-scope-open rect.node-rect {
+  stroke: #e05252;
+  stroke-width: 2;
+  fill: rgba(224, 82, 82, 0.10);
+}
+.node-scope-open text { fill: #000000; }
+
+/* Scope-close: red dashed border */
+.node-scope-close rect.node-rect {
+  stroke: #e05252;
+  stroke-width: 2;
+  stroke-dasharray: 4,2;
+  fill: rgba(224, 82, 82, 0.08);
+}
+.node-scope-close text { fill: #000000; }
+
+/* Collapsed: blue — overrides everything except scope colors */
+.node-collapsed rect.node-rect {
+  stroke: #4a9eff;
+  stroke-width: 2;
+  fill: rgba(74, 158, 255, 0.10);
+}
+.node-collapsed text { fill: #000000; }
+
+/* Presence Condition (PC) nodes */
+.node-pc rect.node-rect {
+  stroke-width: 3;
+  rx: 6;
+  ry: 6;
+}
+.node-pc text { fill: #000000; font-weight: 600; }
+
+/* PC alternative nodes (if_pc, elif_pc, else_pc) */
+.node-pc-alt rect.node-rect {
+  stroke-width: 2;
+  stroke-dasharray: 4,2;
+}
+.node-pc-alt text { fill: #000000; }
+
+/* All other nodes (leaves): white with black continuous border (default) */
+
+/* Root node */
+.node-root rect.node-rect {
+  stroke-width: 3;
+}
+
+/* Collapsed node */
+.node-collapsed rect.node-rect {
+  stroke: #4a9eff;
+  stroke-width: 2;
+}
+
+.node-root.node-collapsed rect.node-rect {
+  stroke: #4a9eff;
+  stroke-width: 3;
+}
+
+/* Collapse indicator */
+.collapse-indicator rect {
+  fill: var(--vscode-editor-background, #1e1e1e);
+  stroke: #4a9eff;
+  stroke-width: 1.5;
+  rx: 2;
+  ry: 2;
+}
+
+.collapse-indicator text {
+  fill: #4a9eff;
+  font-size: 10px;
+  font-weight: bold;
+  dominant-baseline: central;
+  text-anchor: middle;
+}
+
+/* --- Links --- */
+.link {
+  fill: none;
+  stroke: var(--vscode-foreground, #555);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+.link-pc {
+  stroke: #e05252;
+  stroke-width: 3;
+  opacity: 0.8;
+}
+
+.link-pc-label {
+  font-size: 12px;
+  fill: #c0392b;
+  font-weight: 700;
+  opacity: 1;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 3px;
+}
+
+/* --- Stats overlay --- */
+#stats-overlay {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  background: var(--vscode-sideBar-background, rgba(37, 37, 38, 0.9));
+  color: var(--vscode-editor-foreground, #cccccc);
+  border: 1px solid var(--vscode-panel-border, #444);
+  border-radius: 4px;
+  z-index: 10;
+  pointer-events: none;
+  max-width: 220px;
+}
+
+#stats-overlay:empty {
+  display: none;
+}
+
+/* --- Zoom controls --- */
+#zoom-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+
+#zoom-controls button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--vscode-button-border, var(--vscode-foreground, #888));
+  border-radius: 4px;
+  background: var(--vscode-button-secondaryBackground, #3a3d41);
+  color: var(--vscode-button-secondaryForeground, #cccccc);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+#zoom-controls button:hover {
+  background: var(--vscode-button-secondaryHoverBackground, #505354);
+}
+
+#export-png svg {
+  display: block;
+}
+
+/* --- Action bar --- */
+#action-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border-top: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+#action-bar button {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--vscode-button-secondaryBackground, #e0e0e0);
+  color: var(--vscode-button-secondaryForeground, #333);
+}
+
+#action-bar button:hover:not(:disabled) {
+  background: var(--vscode-button-secondaryHoverBackground, #d0d0d0);
+}
+
+#action-bar button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* --- Bottom panel (tabs) --- */
+#bottom-panel {
+  border-top: 1px solid #ccc;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  max-height: 250px;
+  min-height: 32px;
+}
+
+#panel-tabs {
+  display: flex;
+  align-items: center;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.panel-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  margin: 0;
+}
+
+.panel-tab:hover {
+  color: #333;
+}
+
+.panel-tab.active {
+  color: #333;
+  border-bottom-color: #007acc;
+}
+
+.log-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.log-action-btn {
+  background: none;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  color: #555;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+.log-action-btn:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+#panel-toggle {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+#log-content {
+  padding: 4px 12px;
+  background: #ffffff;
+  font-family: var(--vscode-editor-font-family, 'Consolas', 'Courier New', monospace);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.log-line {
+  color: #1e1e1e;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.log-error {
+  color: #d32f2f;
+}
+
+/* Code section tab */
+#code-content {
+  padding: 8px 12px;
+  background: #ffffff;
+  font-family: var(--vscode-editor-font-family, 'Consolas', 'Courier New', monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #1e1e1e;
+}
+
+#code-content .code-header {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #ddd;
+  font-size: 11px;
+}
+
+#code-content .code-body {
+  white-space: pre;
+  tab-size: 4;
+}
+
+.code-placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.code-placeholder-tag {
+  color: #7cacf8;
+  font-weight: bold;
+  background: rgba(124, 172, 248, 0.1);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.code-highlight {
+  background: #c8e6c9;
+  border-radius: 2px;
+}
+
+.code-linenum {
+  display: inline-block;
+  min-width: 3em;
+  text-align: right;
+  margin-right: 8px;
+  color: #999;
+  user-select: none;
+}
+
+/* Clickable node cursor */
+.node.node-clickable {
+  cursor: pointer;
+}
+
+.node.node-clickable rect.node-rect {
+  transition: stroke-width 0.15s;
+}
+
+.node.node-clickable:hover rect.node-rect {
+  stroke-width: 2.5;
+}
+
+/* --- Context menu --- */
+#context-menu {
+  position: absolute;
+  background: var(--vscode-menu-background, #252526);
+  border: 1px solid var(--vscode-menu-border, #454545);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  min-width: 140px;
+  padding: 4px 0;
+}
+
+.context-menu-item {
+  padding: 6px 16px;
+  cursor: pointer;
+  color: var(--vscode-menu-foreground, #cccccc);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.context-menu-item:hover {
+  background: var(--vscode-menu-selectionBackground, #094771);
+  color: var(--vscode-menu-selectionForeground, #ffffff);
+}
+
+/* --- Action bar extras --- */
+.action-separator {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: #ccc;
+  margin: 0 8px;
+  vertical-align: middle;
+}
+
+.action-label {
+  font-size: 12px;
+  color: var(--vscode-button-secondaryForeground, #333);
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.action-input {
+  width: 60px;
+  padding: 3px 6px;
+  font-size: 12px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* --- Progress bar --- */
+#progress-bar-container {
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border-top: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+#progress-label {
+  font-size: 11px;
+  color: #555;
+  margin-bottom: 3px;
+}
+
+#progress-track {
+  width: 100%;
+  height: 6px;
+  background: #ddd;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #7c5cbf;
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+
+/* --- Edge arrows --- */
+.edge-arrow {
+  fill: none;
+  stroke: #e05252;
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+.edge-arrow-similarity {
+  fill: none;
+  stroke: #7c5cbf;
+  stroke-width: 1.5;
+  stroke-dasharray: 6,3;
+  opacity: 0.7;
+}
+
+.edge-arrow-provides {
+  fill: none;
+  stroke: #2e8b57;
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
